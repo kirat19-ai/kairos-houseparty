@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NAUX (clone)
 
-## Getting Started
+**The aux, handled.** A full recreation of [naux.party](https://naux.party): describe the room,
+and it plays a set of Hindi/Punjabi party songs that drop straight into the hook — now with
+**Spotify-style crossfade mixing**, **mid-set search**, and **custom + imported playlists**.
 
-First, run the development server:
+naux.party itself is closed-source, so this is a clone built from scratch that mirrors its stack
+(Next.js on Vercel, YouTube-powered playback).
+
+---
+
+## Features
+
+| Feature | Where | Notes |
+|---|---|---|
+| "Tell NAUX the room" flow | `/` → Build a set | 3 questions → an ordered set |
+| Curated song lists | `/songs`, `/songs/[slug]` | Real official-version YouTube videos + cut points |
+| **Play as a crossfaded set** | player bar / set view | Two YouTube players, volumes blended across the join |
+| **Crossfade control** | set view slider | 0–12s, Spotify-style volume overlap |
+| **Search a song in between** | set view → "Drop a song in" | Insert "Play next" or queue, mid-set |
+| **Custom named playlists** | `/playlists` | Create, rename, delete, reorder, play |
+| **Add your own song / link** | `/playlists` → Edit | Search the catalog or paste any YouTube link |
+| **Import a public YouTube playlist** | `/playlists` → Import | Pulls the playlist's videos (needs API key) |
+
+## How playback & "mixing" works
+
+Every song is the **official version on YouTube**, played through the **YouTube IFrame API**,
+trimmed to its best part (a `start`/`end` cut). The "mix 2 songs like Spotify" feature runs
+**two YouTube players at once** (`src/components/PlayerProvider.tsx`): as the active track nears its
+cut, the next one starts on the idle player and the engine ramps one volume down while the other
+comes up — a crossfade, no gap, no dead air. (True DJ beat-matching isn't possible with YouTube
+iframes — that needs raw audio files + the Web Audio API.)
+
+### About YouTube ads
+This clone does **not** bypass ads, and neither does naux.party — naux's own player says
+*"with YouTube Premium there are no ads."* The IFrame player serves ads based on the **viewer's**
+account, so Premium users get none. Stripping ads (scraping audio, Invidious/Piped proxies,
+injected blockers) violates YouTube's Terms of Service, so it's intentionally not implemented.
+
+## Run it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev -- -p 3100     # http://localhost:3100  (3000 is used by Open WebUI)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Optional: `YOUTUBE_API_KEY`
+Without a key, **mid-set search** works against the built-in catalog + pasted YouTube links, but
+**full-YouTube search** and **playlist import** need a free YouTube Data API v3 key:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cp .env.example .env.local
+# then set YOUTUBE_API_KEY=... (Google Cloud Console → enable "YouTube Data API v3")
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Tech
+Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS v4 · YouTube IFrame API.
+UI is Apple.com-inspired: SF system type, frosted nav, generous whitespace, scroll reveals.
 
-## Learn More
+## Reference repos (the "repos" to learn from)
+- **naux.party** — closed-source; no public repo (this is a clone).
+- **YouTube playback**: [`react-youtube`](https://github.com/tjallingt/react-youtube),
+  [`youtube-player`](https://github.com/gajus/youtube-player).
+- **Crossfade / audio mixing**: [`howler.js`](https://github.com/goldfire/howler.js),
+  [`Tone.js`](https://github.com/Tonejs/Tone.js); for real-audio DJ mixing:
+  [`Mixxx`](https://github.com/mixxxdj/mixxx), [`wavesurfer.js`](https://github.com/katspaugh/wavesurfer.js).
+- **Apple-style UI**: [adrianhajdin `iphone`](https://github.com/adrianhajdin/iphone) (Apple iPhone
+  clone, GSAP/Three.js) and similar apple-website clones.
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+*Demo project. Playback depends on YouTube embedding being allowed for each video.*

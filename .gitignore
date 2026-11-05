@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# scraped source dump (untrusted, re-downloadable)
+scripts/naux-dump/
+.dev.log
